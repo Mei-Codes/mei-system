@@ -1,0 +1,43 @@
+base-devel,,compilation toolchain and utilities
+musl-devel,,C standard library development headers
+xorg-minimal,,lightweight X11 server
+xorg-fonts,,standard X system fonts
+xf86-input-libinput,,xorg input driver for trackpads and mice
+libX11-devel,,X11 client library headers
+libXft-devel,,FreeType font rendering headers for X
+libXinerama-devel,,multi-monitor support headers
+libX11,,X11 core library
+libXft,,FreeType font rendering for X
+libXinerama,,Xinerama multi-monitor extension
+curl,,command line data transfer tool
+git,,version control system
+zsh,,interactive command line shell
+neovim,,text editor and development platform
+st,,suckless terminal emulator
+dmenu,,suckless application launcher
+dwm,,suckless window manager
+lf,,terminal file manager
+nsxiv,,lightweight image and GIF viewer
+mpv,,media player
+thunderbird,,email client
+strawberry,,local music player
+thunar,,graphical file manager
+firefox,,web browser
+font-awesome,,icon font family
+ttf-liberation,,standard monospace and sans-serif fonts
+liberation-fonts-ttf,,additional font rendering support
+xwallpaper,,X11 wallpaper setter
+xdotool,,X11 automation tool
+xclip,,clipboard manager for X11
+maim,,screenshot utility
+pipewire,,modern multimedia sound server
+wireplumber,,pipewire session manager
+pulsemixer,,terminal audio mixer
+coreutils,,GNU core utilities for script compatibility
+findutils,,GNU file searching utilities
+gnu-sed,,GNU stream editor
+gawk,,GNU pattern scanning language
+grep,,GNU regular expression search tool
+gcompat,,glibc compatibility layer for musl
+flatpak,,sandboxed application runtime
+G,https://github.com/LukeSmithxyz/dwmblocks.git,modular status bar for dwm
