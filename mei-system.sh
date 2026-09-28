@@ -51,29 +51,44 @@ sudo xbps-install -Syu
 # ------------------------------------------------------------------------------
 # 2. Package Installation Loop
 # ------------------------------------------------------------------------------
-yellow "Installing packages from $PROGS_FILE..."
+# ------------------------------------------------------------------------------
+# 2.1 Package Installation (Pass 1: XBPS Binary Packages First)
+# ------------------------------------------------------------------------------
+yellow "Pass 1: Installing all binary packages via XBPS..."
+
+# Explicitly ensure build toolchain exists first no matter what
+sudo xbps-install -y base-devel musl-devel git
 
 while IFS=',' read -r tag pkg desc; do
-    # Skip comments and empty lines
     case "$tag" in
         \#*|"") continue ;;
     esac
 
-    # Standard XBPS Package
+    # Only process standard XBPS packages in Pass 1
     if [ -z "$tag" ]; then
-        yellow "Installing: $pkg ($desc)..."
+        yellow "Installing XBPS package: $pkg ($desc)..."
         sudo xbps-install -y "$pkg" || true
+    fi
+done < "$PROGS_FILE"
 
-    # Git Repository Source Build (Suckless tools / dwmblocks)
-    elif [ "$tag" = "G" ]; then
+# ------------------------------------------------------------------------------
+# 2.2 Source Builds (Pass 2: Git Compilations)
+# ------------------------------------------------------------------------------
+yellow "Pass 2: Compiling source repositories (Suckless tools)..."
+
+while IFS=',' read -r tag pkg desc; do
+    case "$tag" in
+        \#*|"") continue ;;
+    esac
+
+    # Only process Git builds in Pass 2 (now that base-devel & headers are 100% installed)
+    if [ "$tag" = "G" ]; then
         yellow "Building git source: $pkg ($desc)..."
         dir_name=$(basename "$pkg" .git)
         target_dir="$HOME/.local/src/$dir_name"
 
         mkdir -p "$HOME/.local/src"
-        if [ -d "$target_dir" ]; then
-            rm -rf "$target_dir"
-        fi
+        rm -rf "$target_dir"
 
         git clone "$pkg" "$target_dir"
         cd "$target_dir"
