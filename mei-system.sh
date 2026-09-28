@@ -8,7 +8,7 @@
 set -e
 
 DOTFILES_REPO="https://github.com/LukeSmithxyz/voidrice.git"
-PROGS_FILE="progs.csv"
+PROGS_FILE="packages.csv"
 REPONAME="voidrice"
 
 # Color helpers
