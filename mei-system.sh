@@ -49,35 +49,35 @@ sudo xbps-install -Sy void-repo-nonfree
 sudo xbps-install -Syu
 
 # ------------------------------------------------------------------------------
-# 2. Package Installation Loop
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# 2.1 Package Installation (Pass 1: XBPS Binary Packages First)
+# 2. Package Installation (Pass 1: XBPS Binary Packages)
 # ------------------------------------------------------------------------------
 yellow "Pass 1: Installing all binary packages via XBPS..."
 
-# Force install toolchain immediately to ensure basic utilities exist
-sudo xbps-install -Sy base-devel musl-devel git </dev/null
+# Guaranteed base build environment first
+sudo xbps-install -Sy base-devel musl-devel git
 
-# Read packages using File Descriptor 3 to prevent xbps-install from stealing stdin
-while IFS=',' read -r tag pkg desc <&3; do
+# Extract all standard packages (where column 1 tag is empty) into a single space-separated list
+XBPS_PKGS=""
+while IFS=',' read -r tag pkg desc || [ -n "$tag" ]; do
     case "$tag" in
-        \#*|"") continue ;;
+        \#*|"") 
+            if [ -n "$pkg" ] && [ -z "$tag" ]; then
+                XBPS_PKGS="$XBPS_PKGS $pkg"
+            fi
+            ;;
     esac
+done < "$PROGS_FILE"
 
-    # Only process standard XBPS packages in Pass 1
-    if [ -z "$tag" ]; then
-        yellow "Installing XBPS package: $pkg ($desc)..."
-        sudo xbps-install -y "$pkg" </dev/null || true
-    fi
-done 3< "$PROGS_FILE"
+# Install all binary packages IN A SINGLE XBPS CALL (massively faster & immune to loop bugs)
+yellow "Batch installing packages:$XBPS_PKGS"
+sudo xbps-install -y $XBPS_PKGS
 
 # ------------------------------------------------------------------------------
-# 2.2 Source Builds (Pass 2: Git Compilations)
+# Source Builds (Pass 2: Git Compilations)
 # ------------------------------------------------------------------------------
 yellow "Pass 2: Compiling source repositories (Suckless tools)..."
 
-while IFS=',' read -r tag pkg desc <&3; do
+while IFS=',' read -r tag pkg desc || [ -n "$tag" ]; do
     case "$tag" in
         \#*|"") continue ;;
     esac
@@ -95,10 +95,9 @@ while IFS=',' read -r tag pkg desc <&3; do
         cd "$target_dir"
         make
         sudo make install
-        cd ->/dev/null
+        cd - >/dev/null
     fi
-done 3< "$PROGS_FILE"
-
+done < "$PROGS_FILE"
 # ------------------------------------------------------------------------------
 # 3. Deploy Dotfiles (Luke Smith's voidrice)
 # ------------------------------------------------------------------------------
