@@ -56,10 +56,11 @@ sudo xbps-install -Syu
 # ------------------------------------------------------------------------------
 yellow "Pass 1: Installing all binary packages via XBPS..."
 
-# Explicitly ensure build toolchain exists first no matter what
-sudo xbps-install -y base-devel musl-devel git
+# Force install toolchain immediately to ensure basic utilities exist
+sudo xbps-install -Sy base-devel musl-devel git </dev/null
 
-while IFS=',' read -r tag pkg desc; do
+# Read packages using File Descriptor 3 to prevent xbps-install from stealing stdin
+while IFS=',' read -r tag pkg desc <&3; do
     case "$tag" in
         \#*|"") continue ;;
     esac
@@ -67,21 +68,21 @@ while IFS=',' read -r tag pkg desc; do
     # Only process standard XBPS packages in Pass 1
     if [ -z "$tag" ]; then
         yellow "Installing XBPS package: $pkg ($desc)..."
-        sudo xbps-install -y "$pkg" || true
+        sudo xbps-install -y "$pkg" </dev/null || true
     fi
-done < "$PROGS_FILE"
+done 3< "$PROGS_FILE"
 
 # ------------------------------------------------------------------------------
 # 2.2 Source Builds (Pass 2: Git Compilations)
 # ------------------------------------------------------------------------------
 yellow "Pass 2: Compiling source repositories (Suckless tools)..."
 
-while IFS=',' read -r tag pkg desc; do
+while IFS=',' read -r tag pkg desc <&3; do
     case "$tag" in
         \#*|"") continue ;;
     esac
 
-    # Only process Git builds in Pass 2 (now that base-devel & headers are 100% installed)
+    # Only process Git builds in Pass 2
     if [ "$tag" = "G" ]; then
         yellow "Building git source: $pkg ($desc)..."
         dir_name=$(basename "$pkg" .git)
@@ -94,9 +95,9 @@ while IFS=',' read -r tag pkg desc; do
         cd "$target_dir"
         make
         sudo make install
-        cd - >/dev/null
+        cd ->/dev/null
     fi
-done < "$PROGS_FILE"
+done 3< "$PROGS_FILE"
 
 # ------------------------------------------------------------------------------
 # 3. Deploy Dotfiles (Luke Smith's voidrice)
